@@ -9,6 +9,7 @@
     "dev": "node --loader ts-node/esm src/index.ts",
     "register": "node --loader ts-node/esm src/register-commands.ts",
     "build": "tsc",
+    "build:ci": "node --max-old-space-size=1024 ./node_modules/.bin/tsc",
     "start": "node dist/index.js",
     "pm2": "pm2 start dist/index.js --name emuready-bot",
     "pm2:restart": "pm2 restart emuready-bot",

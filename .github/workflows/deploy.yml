@@ -23,7 +23,7 @@ jobs:
             cd ${{ secrets.APP_DIR }}
             git pull origin master
             npm install --frozen-lockfile
-            npm run build
+            npm run build:ci
             pm2 restart EmuReadyDiscordBot || pm2 start dist/index.js --name EmuReadyDiscordBot
             pm2 save
           EOF
