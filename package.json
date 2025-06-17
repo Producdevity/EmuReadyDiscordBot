@@ -6,9 +6,13 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
-    "register": "ts-node src/register-commands.ts",
-    "build": "tsc"
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "register": "node --loader ts-node/esm src/register-commands.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "pm2": "pm2 start dist/index.js --name emuready-bot",
+    "pm2:restart": "pm2 restart emuready-bot",
+    "pm2:logs": "pm2 logs emuready-bot"
   },
   "dependencies": {
     "discord.js": "^14.11.0",
@@ -16,8 +20,9 @@
   },
   "devDependencies": {
     "@types/node": "^20.6.0",
+    "pm2": "^6.0.8",
     "prettier": "^3.5.3",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.2.2"
   }
 }
