@@ -78,5 +78,11 @@ export async function handleEmulatorModal(interaction: ModalSubmitInteraction) {
 
   const formatted = `\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``
 
-  await interaction.reply({ content: formatted, ephemeral: true })
+  if (
+    interaction.channel &&
+    interaction.channel.isTextBased() &&
+    'send' in interaction.channel
+  ) {
+    await interaction.channel.send({ content: formatted })
+  }
 }

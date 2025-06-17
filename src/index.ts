@@ -76,4 +76,24 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   }
 })
 
+const restrictedChannels = Object.values(ALLOWED_CHANNELS)
+
+client.on(Events.MessageCreate, async (message) => {
+  if (message.author.bot) return
+  if (!restrictedChannels.includes(message.channelId)) return
+  if (message.type !== 0 || message.author.bot) return // allow command replies
+
+  await message.delete().catch(console.error)
+
+  const commandName = Object.entries(ALLOWED_CHANNELS).find(
+    ([, id]) => id === message.channelId,
+  )?.[0]
+
+  const commandText = commandName ? `/${commandName}` : 'the correct command'
+
+  await message.channel.send({
+    content: `<@${message.author.id}> ❌ Please use ${commandText} in this channel.`,
+  })
+})
+
 client.login(process.env.DISCORD_TOKEN)
