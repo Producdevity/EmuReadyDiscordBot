@@ -6,11 +6,19 @@ import {
   ChatInputCommandInteraction,
   ModalSubmitInteraction,
 } from 'discord.js'
+import { ALLOWED_CHANNELS } from '../constants.js'
 
 export async function registerDeviceRequestCommand(
   interaction: ChatInputCommandInteraction,
 ) {
   if (interaction.commandName !== 'request-device') return
+  if (interaction.channelId !== ALLOWED_CHANNELS[interaction.commandName]) {
+    await interaction.reply({
+      content: '❌ This command can only be used in #request-emulators',
+      ephemeral: true,
+    })
+    return
+  }
 
   const modal = new ModalBuilder()
     .setCustomId('deviceRequest')
