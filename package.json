@@ -2,7 +2,7 @@
   "name": "emuready-discord-bot",
   "version": "1.0.0",
   "author": "Producdevity",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
