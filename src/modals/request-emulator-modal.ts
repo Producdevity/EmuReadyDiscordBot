@@ -1,12 +1,15 @@
 import {
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
   ActionRowBuilder,
   ChatInputCommandInteraction,
+  ModalBuilder,
   ModalSubmitInteraction,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
+  TextInputBuilder,
+  TextInputStyle,
 } from 'discord.js'
 import { ALLOWED_CHANNELS } from '../constants.js'
+import { formatInteractionData } from '../utils/formatInteractionData.js'
 
 export async function registerEmulatorRequestCommand(
   interaction: ChatInputCommandInteraction,
@@ -20,42 +23,76 @@ export async function registerEmulatorRequestCommand(
     })
     return
   }
+
+  await interaction.reply({
+    content: 'Before continuing, confirm you checked EmuReady:',
+    components: [
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId('emulatorCheckConfirm')
+          .setPlaceholder('Does this emulator already exist on EmuReady?')
+          .addOptions(
+            {
+              label: 'No, I checked and it does not exist',
+              value: 'checked_not_found',
+            },
+            {
+              label:
+                'No, I am a lazy fck and did not check and my request will be ignored',
+              value: 'not_checked',
+            },
+          ),
+      ),
+    ],
+    ephemeral: true,
+  })
+}
+
+export async function handleEmulatorCheckConfirm(
+  interaction: StringSelectMenuInteraction,
+) {
+  if (interaction.customId !== 'emulatorCheckConfirm') return
+
   const modal = new ModalBuilder()
     .setCustomId('emulatorRequest')
     .setTitle('Emulator Request')
-
-  const name = new TextInputBuilder()
-    .setCustomId('name')
-    .setLabel('Emulator Name')
-    .setStyle(TextInputStyle.Short)
-
-  const website = new TextInputBuilder()
-    .setCustomId('website')
-    .setLabel('Website URL')
-    .setStyle(TextInputStyle.Short)
-
-  const repo = new TextInputBuilder()
-    .setCustomId('repo')
-    .setLabel('Repository URL')
-    .setStyle(TextInputStyle.Short)
-
-  const systems = new TextInputBuilder()
-    .setCustomId('systems')
-    .setLabel('Supported Systems (comma-separated)')
-    .setStyle(TextInputStyle.Paragraph)
-
-  const openSource = new TextInputBuilder()
-    .setCustomId('openSource')
-    .setLabel('Open Source? (true/false)')
-    .setStyle(TextInputStyle.Short)
-
-  modal.addComponents(
-    new ActionRowBuilder<TextInputBuilder>().addComponents(name),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(website),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(repo),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(systems),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(openSource),
-  )
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId('name')
+          .setRequired(true)
+          .setLabel('Emulator Name')
+          .setStyle(TextInputStyle.Short),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId('website')
+          .setLabel('Website URL')
+          .setStyle(TextInputStyle.Short),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId('repo')
+          .setLabel('Repository URL')
+          .setStyle(TextInputStyle.Short),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId('systems')
+          .setRequired(true)
+          .setPlaceholder('PS3, PS4, Xbox 360, etc.')
+          .setLabel('Supported Systems (comma-separated if multiple)')
+          .setStyle(TextInputStyle.Short),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId('openSource')
+          .setRequired(true)
+          .setPlaceholder('true')
+          .setLabel('Open Source? (true/false)')
+          .setStyle(TextInputStyle.Short),
+      ),
+    )
 
   await interaction.showModal(modal)
 }
@@ -76,13 +113,8 @@ export async function handleEmulatorModal(interaction: ModalSubmitInteraction) {
       'true',
   }
 
-  const formatted = `\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``
+  const username = interaction.user.globalName ?? interaction.user.username
+  const formatted = formatInteractionData(data, username)
 
-  if (
-    interaction.channel &&
-    interaction.channel.isTextBased() &&
-    'send' in interaction.channel
-  ) {
-    await interaction.channel.send({ content: formatted })
-  }
+  await interaction.reply({ content: formatted })
 }

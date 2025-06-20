@@ -1,12 +1,21 @@
-import { Client, GatewayIntentBits, Events, Interaction } from 'discord.js'
+import {
+  Client,
+  GatewayIntentBits,
+  Events,
+  Interaction,
+  ModalSubmitInteraction,
+  StringSelectMenuInteraction,
+} from 'discord.js'
 import 'dotenv/config'
 
 import {
+  handleDeviceCheckConfirm,
   registerDeviceRequestCommand,
   handleDeviceModal,
 } from './modals/request-device-modal.js'
 
 import {
+  handleEmulatorCheckConfirm,
   registerEmulatorRequestCommand,
   handleEmulatorModal,
 } from './modals/request-emulator-modal.js'
@@ -70,9 +79,30 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
     }
   }
 
+  const selectMenuHandlers: Record<
+    string,
+    (i: StringSelectMenuInteraction) => Promise<void>
+  > = {
+    deviceCheckConfirm: handleDeviceCheckConfirm,
+    emulatorCheckConfirm: handleEmulatorCheckConfirm,
+  }
+
+  const modalHandlers: Record<
+    string,
+    (i: ModalSubmitInteraction) => Promise<void>
+  > = {
+    deviceRequest: handleDeviceModal,
+    emulatorRequest: handleEmulatorModal,
+  }
+
+  if (interaction.isStringSelectMenu()) {
+    const handler = selectMenuHandlers[interaction.customId]
+    if (handler) await handler(interaction)
+  }
+
   if (interaction.isModalSubmit()) {
-    await handleDeviceModal(interaction)
-    await handleEmulatorModal(interaction)
+    const handler = modalHandlers[interaction.customId]
+    if (handler) await handler(interaction)
   }
 })
 
